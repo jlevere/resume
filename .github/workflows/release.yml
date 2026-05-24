@@ -6,6 +6,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,20 +33,21 @@ jobs:
           AUTHOR: ${{ vars.AUTHOR }}
           EMAIL: ${{ vars.EMAIL }}
           LINKS: ${{ vars.LINKS }}
+          COMMIT: ${{ github.sha }}
+          REPO: ${{ github.server_url }}/${{ github.repository }}
         run: |
-          nix develop --command typst compile resume.typ \
-            --input "title=$TITLE" \
-            --input "author=$AUTHOR" \
-            --input "email=$EMAIL" \
-            --input "links=$LINKS" \
-            --format pdf "resume-$TAG.pdf"
-
-          nix develop --command typst compile resume.typ \
-            --input "title=$TITLE" \
-            --input "author=$AUTHOR" \
-            --input "email=$EMAIL" \
-            --input "links=$LINKS" \
-            --format png --pages 1 resume.png
+          compile() {
+            nix develop --command typst compile resume.typ \
+              --input "title=$TITLE" \
+              --input "author=$AUTHOR" \
+              --input "email=$EMAIL" \
+              --input "links=$LINKS" \
+              --input "commit=$COMMIT" \
+              --input "repo=$REPO" \
+              "$@"
+          }
+          compile --format pdf "resume-$TAG.pdf"
+          compile --format png --pages 1 resume.png
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0

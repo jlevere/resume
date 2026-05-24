@@ -47,15 +47,22 @@
 
 #let title = read-input("title")
 #let author = coalesce(read-input("author"), title)
+#let commit = read-input("commit")
+#let repo = read-input("repo")
 #let contact = (
   read-input("phone"),
   read-input("email"),
   read-input("links"),
 ).filter(v => v != none)
 
+#let build-description = if commit != none and repo != none {
+  "Built from " + repo + " at commit " + commit + "."
+} else { none }
+
 #set document(
   title: coalesce(title, "Resume"),
   author: coalesce(author, ""),
+  description: build-description,
   keywords: ("resume", "cv"),
 )
 #set page(margin: 2.5em)
@@ -83,65 +90,53 @@
 
 #entry(
   org: "IBM X-Force Red",
-  title: "Pentest Intern",
+  title: "Penetration Testing Consultant",
   location: "Austin, Texas",
-  date: "May-August 2024",
+  date: "July 2025 - Present",
 )[
-  - Engineered a stealthy LDAP tool in python, #link("https://github.com/logangoins/soapy", "soapy"), building eight communication layers and authentication mechanisms from the ground up. Developed a stand alone tool compatible with the well known impacket tool set.
-  - Worked with senior pentesters during live engagements to identify and exploit vulnerabilities.
+  - Perform network and Active Directory penetration tests for enterprise clients.
+  - Contribute to team engagements including source code reviews, image assessments, and web application testing.
 ]
 
 #entry(
   org: "IBM X-Force Red",
-  title: "Pentest Intern",
+  title: "Penetration Testing Intern",
   location: "Austin, Texas",
-  date: "May-August 2023",
+  date: "Summers 2023, 2024",
 )[
-  - Worked in team to develop a C2 system using ETW for opportunistic traffic capture on Windows devices, enabling covert communication without direct socket use. Presented a proof of concept to IBM executives.
-  - Shadowed experienced pentesters on app and internal network penetration tests, gaining valuable insights.
-  - Completed series of expert-led, training programs focused on network penetration, web application security, cryptography, social engineering, and mobile application security.
+  - Co-authored #link("https://github.com/logangoins/soapy", "SOAPy"), a stealthy Active Directory enumeration tool using ADWS over a SOCKS5 proxy; reverse-engineered and reimplemented proprietary Microsoft .NET protocols in Python. Companion research #link("https://www.ibm.com/think/x-force/stealthy-enumeration-of-active-directory-environments-through-adws", "published by IBM X-Force Red").
+  - Co-developed a proof-of-concept C2 system using ETW for opportunistic Windows traffic capture without direct socket use; presented to IBM executives.
 ]
-
-#entry(
-  org: "The Ohio State University Athletics Department",
-  title: "IT Student Intern",
-  location: "Columbus, Ohio",
-  date: "May 2022 - August 2022",
-)[
-  - Developed processes to track and document vulnerability remediation across four thousand devices.
-  - Worked with the myriad of tools used to secure and manage large enterprise environments including CrowdStrike, Qualys, and the SolarWinds suite.
-]
-
-== Extracurricular
 
 #entry(
   org: "OSU Cyber Security Club",
-  title: "Vice President / Member",
+  title: "Member; Vice President 2023 - 2024",
   location: "Columbus, Ohio",
-  date: "August 2020 - Present",
+  date: "2020 - 2025",
 )[
-  - Member of the winning RIT ISTS 2022 team, an attack-defense cybersecurity competition. Competed in ISTS from 2022 to 2024.
-  - Led meetings, managed AWS infrastructure using Terraform, and coordinated BuckeyeCTF, organizing participation for thousands annually.
-  - Participated in the Cyber Truck Challenge 2022, working in a six-person team to map and attack heavy truck engine control units, communication networks, and cyber-physical systems. Presented findings and vulnerabilities to OEMs.
-  - Collaborated with the Truck Cybersecurity Research Group to develop attack methodologies for Engine Control Units.
-  - Designed Python network support for J1939 intelligent fuzzers and J1939 Transport Protocol.
+  - 1st place, RIT ISTS 2022 attack-defense competition; competed 2022 - 2024.
+  - Helped run BuckeyeCTF, the university CTF hosting thousands of competitors each year.
+  - At the Cyber Truck Challenge 2022, mapped and attacked heavy-truck ECUs and cyber-physical systems; presented findings to OEMs.
+  - Worked with the Truck Cybersecurity Research Group on Engine Control Unit attack methodologies; designed Python networking for J1939 intelligent fuzzers and the J1939 Transport Protocol.
 ]
 
-#entry(
-  org: "US National Team",
-  title: "Athletics Experience, Target Pistol Shooting",
-  location: "OSU Varsity Athlete",
-  date: "August 2016 - 2024",
-)[
-  - 2020 Tokyo Olympian, Rapid Fire Pistol
-  - Dedicated 20+ hours a week to training and practice while maintaining a full academic course load.
-  - 2021, 2022, 2023, 2024 All-American, OSU Scholar Athlete.
-  - 2018 CAT Games Mexico, 2018 South Korea World Championship team, 2019 Pan-American Games Lima.
-]
+== Projects
+
+- *#link("https://github.com/jLevere/azvpn", "azvpn")* _(Rust)_, a cross-platform Azure Virtual WAN and VPN Gateway client with AAD authentication, headless daemon, and native packaging. Fixes a long-standing macOS split-DNS bug missing from Microsoft's official client.
+- *#link("https://github.com/jLevere/elfpreview", "elfpreview")* _(Rust + WebAssembly, TypeScript)_, a VS Code extension for inspecting ELF binaries; libgoblin compiled to WASM with WIT-typed bindings, Svelte 5 UI.
+- *#link("https://github.com/jLevere/obsidian-mcp-plugin", "obsidian-mcp-plugin")* _(TypeScript)_, an Obsidian plugin embedding a Model Context Protocol server with selectable tools and optional bearer-token authentication.
 
 == Skills
 
 #skills((
-  "Programming Languages": "Python, Golang, Zig, C, Terraform",
-  "Tools & Frameworks": "Ghidra, Pwntools, AWS, WireShark",
+  "Languages": "Rust, Python, Go, TypeScript, C, Zig",
+  "Security": "Active Directory, BloodHound, Impacket, Burp Suite, Ghidra, Wireshark",
+  "Infrastructure": "Nix, Terraform, AWS, Azure",
 ))
+
+== Honors
+
+#block(spacing: 0.7em)[
+  *US National Team*, Target Pistol Shooting (2016 - 2024) \
+  #link("https://en.wikipedia.org/wiki/Jack_Leverett_III", "2020 Tokyo Olympian"), Rapid Fire Pistol. Four-time All-American (2021 - 2024), OSU Scholar Athlete.
+]
