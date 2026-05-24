@@ -1,26 +1,27 @@
 {
-  description = "A Nix-flake-based Typst development environment";
+  description = "Typst-based resume with reproducible build environment";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs = {
     self,
     nixpkgs,
-    flake-utils,
-  }:
-    flake-utils.lib.eachDefaultSystem (
-      system: let
-        pkgs = import nixpkgs {inherit system;};
-      in {
-        devShells.default = pkgs.mkShell {
-          packages = with pkgs; [
-            typst
-            harper
-          ];
-        };
-      }
-    );
+  }: let
+    systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
+    forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system});
+  in {
+    devShells = forAllSystems (pkgs: {
+      default = pkgs.mkShell {
+        packages = with pkgs; [
+          typst
+          typstyle
+          harper
+        ];
+      };
+    });
+
+    formatter = forAllSystems (pkgs: pkgs.alejandra);
+  };
 }
