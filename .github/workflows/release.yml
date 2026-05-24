@@ -3,6 +3,9 @@ name: Release
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,41 +13,42 @@ jobs:
       contents: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Nix
-        uses: cachix/install-nix-action@v30
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+        uses: DeterminateSystems/nix-installer-action@v22
 
       - name: Get short SHA
         id: get-sha
-        shell: bash
-        run: |
-          SHA=$(git rev-parse --short HEAD)
-          echo "tag_name=$SHA" >> "$GITHUB_OUTPUT"
+        run: echo "tag_name=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Compile typst (PDF + PNG)
+      - name: Compile resume (PDF + PNG)
+        env:
+          TAG: ${{ steps.get-sha.outputs.tag_name }}
+          TITLE: ${{ vars.TITLE }}
+          AUTHOR: ${{ vars.AUTHOR }}
+          EMAIL: ${{ vars.EMAIL }}
+          LINKS: ${{ vars.LINKS }}
         run: |
           nix develop --command typst compile resume.typ \
-            --input title=${{ vars.TITLE }} \
-            --input author=${{ vars.AUTHOR }} \
-            --input email=${{ vars.EMAIL }} \
-            --input links=${{ vars.LINKS }} \
-            --format pdf resume-${{ steps.get-sha.outputs.tag_name }}.pdf
+            --input "title=$TITLE" \
+            --input "author=$AUTHOR" \
+            --input "email=$EMAIL" \
+            --input "links=$LINKS" \
+            --format pdf "resume-$TAG.pdf"
 
           nix develop --command typst compile resume.typ \
-            --input title=${{ vars.TITLE }} \
-            --input author=${{ vars.AUTHOR }} \
-            --input email=${{ vars.EMAIL }} \
-            --input links=${{ vars.LINKS }} \
-            --format png --pages 1
+            --input "title=$TITLE" \
+            --input "author=$AUTHOR" \
+            --input "email=$EMAIL" \
+            --input "links=$LINKS" \
+            --format png --pages 1 resume.png
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ steps.get-sha.outputs.tag_name }}
-          name: "Release ${{ steps.get-sha.outputs.tag_name }}"
+          name: Release ${{ steps.get-sha.outputs.tag_name }}
           generate_release_notes: true
           files: |
             resume-${{ steps.get-sha.outputs.tag_name }}.pdf
