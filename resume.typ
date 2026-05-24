@@ -8,29 +8,12 @@
   if v == none or v == "" { none } else { v }
 }
 
-#let title = read-input("title")
-#let author = coalesce(read-input("author"), title)
-#let contact = (
-  read-input("phone"),
-  read-input("email"),
-  read-input("links"),
-).filter(v => v != none)
-
-#set document(
-  title: coalesce(title, "Resume"),
-  author: coalesce(author, ""),
-  keywords: ("resume", "cv"),
-)
-#set page(margin: 2.5em)
-#set text(size: 11pt, lang: "en")
-#set par(justify: true, leading: 0.55em)
-#set list(marker: [•], indent: 0pt, body-indent: 0.5em)
-
-#show heading.where(level: 2): it => block(below: 0.5em)[
-  #text(weight: 700, it.body)
-  #line(length: 100%, stroke: 0.7pt)
+#let header(title, contact) = align(center)[
+  #text(weight: 700, size: 1.75em, title)
+  #v(0.5em)
+  #if contact.len() > 0 [#contact.join(" | ")]
+  #v(1em)
 ]
-#show link: it => underline(it, offset: 2pt)
 
 #let entry(org: none, title: none, location: none, date: none, body) = block(
   spacing: 1em,
@@ -62,12 +45,31 @@
   ]
 ]
 
-#align(center)[
-  #text(weight: 700, size: 1.75em, coalesce(title, "Your Name"))
-  #v(0.5em)
-  #if contact.len() > 0 [#contact.join(" | ")]
-  #v(1em)
+#let title = read-input("title")
+#let author = coalesce(read-input("author"), title)
+#let contact = (
+  read-input("phone"),
+  read-input("email"),
+  read-input("links"),
+).filter(v => v != none)
+
+#set document(
+  title: coalesce(title, "Resume"),
+  author: coalesce(author, ""),
+  keywords: ("resume", "cv"),
+)
+#set page(margin: 2.5em)
+#set text(size: 11pt, lang: "en")
+#set par(justify: true, leading: 0.55em)
+#set list(marker: [•], indent: 0pt, body-indent: 0.5em)
+
+#show heading.where(level: 2): it => block(below: 0.5em)[
+  #text(weight: 700, it.body)
+  #line(length: 100%, stroke: 0.7pt)
 ]
+#show link: it => underline(it, offset: 2pt)
+
+#header(coalesce(title, "Your Name"), contact)
 
 == Education
 
