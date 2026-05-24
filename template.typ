@@ -1,8 +1,8 @@
-
-/// Resume template for creating professional resumes
+/// Resume template for a single-page, ATS-friendly resume.
 ///
-/// This function sets up the document structure and styling for a resume.
-/// It handles parameter resolution from function arguments or command line inputs.
+/// Parameters can be passed via `resume.with(...)` or `typst compile --input key=value`.
+/// Fields left unset are omitted from the contact line rather than rendering
+/// placeholders.
 ///
 /// ```typ
 /// #show: resume.with(
@@ -12,226 +12,179 @@
 ///   links: "linkedin.com/in/janedoe, github.com/janedoe",
 /// )
 /// ```
-///
-/// A fully formatted resume document
 /// -> content
 #let resume(
-  /// The name to display at the top of the resume
+  /// Name displayed at the top of the resume.
   /// -> string
   title: none,
-  /// The document author metadata
+  /// PDF document author metadata. Falls back to `title` when unset.
   /// -> string
   author: none,
-  /// Contact email address
+  /// Contact email.
   /// -> string
   email: none,
-  /// Contact phone number
+  /// Contact phone.
   /// -> string
   phone: none,
-  /// Professional links (LinkedIn, GitHub, etc.)
+  /// Professional links (LinkedIn, GitHub, etc.).
   /// -> string
   links: none,
-  /// The main content of the resume
+  /// Resume body.
   /// -> content
   body,
 ) = {
-  // Get values from command line arguments or use provided parameters
-  let defaults = (
-    "title": "Your Name",
-    "author": "Resume Owner",
-    "email": "email\@example.com",
-    "phone": "(123) 456-7890",
-    "links": "linkedin.com/in/yourprofile",
-  )
-
-  let params = (
-    "title": title,
-    "author": author,
-    "email": email,
-    "phone": phone,
-    "links": links,
-  )
-
-  let resolve(key) = {
-    if params.at(key) != none {
-      params.at(key)
-    } else {
-      sys.inputs.at(key, default: defaults.at(key))
-    }
+  let resolve(key, given) = {
+    if given != none { given } else { sys.inputs.at(key, default: none) }
   }
 
-  let title = resolve("title")
-  let author = resolve("author")
-  let email = resolve("email")
-  let phone = resolve("phone")
-  let links = resolve("links")
+  let title = resolve("title", title)
+  let author = resolve("author", author)
+  let author = if author != none { author } else { title }
+  let email = resolve("email", email)
+  let phone = resolve("phone", phone)
+  let links = resolve("links", links)
 
-  // Document setup
-  set document(author: author, title: "Resume", date: datetime.today())
-  set text(size: 11pt, lang: "en")
+  set document(
+    title: if title != none { title } else { "Resume" },
+    author: if author != none { author } else { "" },
+    keywords: ("resume", "cv"),
+    date: datetime.today(),
+  )
+
   set page(margin: 2.5em)
-  set par(justify: true)
-  set align(left + top)
+  set text(size: 11pt, lang: "en")
+  set par(justify: true, leading: 0.55em, spacing: 1em)
+  set list(marker: [•], indent: 0pt, body-indent: 0.5em)
 
-  // Header styling
   show heading: it => {
     set text(weight: 700)
     set block(below: 0.5em)
     it
   }
 
-  // Header
+  show link: it => underline(it, offset: 2pt)
+
+  let contact = (phone, email, links).filter(v => v != none and v != "")
+
   align(center)[
-    #text(weight: 700, 1.75em, title)
+    #text(weight: 700, size: 1.75em, title)
     #v(0.5em)
-    #text((phone, email, links).join(" | "))
+    #if contact.len() > 0 [
+      #contact.join(" | ")
+    ]
     #v(1em)
   ]
 
-  // Main content
   body
 }
 
-/// Creates a section heading with a horizontal divider
-///
-/// This function generates a formatted section header with a horizontal line
-/// underneath to visually separate resume sections.
+/// Section heading with a horizontal divider.
 ///
 /// ```example
 /// #section("Experience")
 /// ```
-///
-/// A formatted section heading with a horizontal divider
 /// -> content
 #let section(
-  /// The section title (will be displayed in uppercase)
+  /// Section title.
   /// -> string
   title,
 ) = {
-  heading(level: 2, text(weight: 700, title))
+  heading(level: 2, title)
   line(length: 100%, stroke: 0.7pt)
-  v(-3pt)
 }
 
-/// Creates a resume entry for experience, projects, or other achievements
-///
-/// This function formats a professional experience or project entry with
-/// organization name, job title, location, dates, and bullet points.
+/// Resume entry for experience, projects, or other achievements.
 ///
 /// ```example
 /// #entry(
-///    organization: "IBM X-Force Red",
-///    title: "Pentest Intern",
-///    location: "Austin, Texas",
-///    date: "May-August 2023",
-///    bullets: (
-///      "Worked in team to develop a C2 system",
-///      "Shadowed pentesters",
-///    ),
+///   organization: "IBM X-Force Red",
+///   title: "Pentest Intern",
+///   location: "Austin, Texas",
+///   date: "May-August 2023",
+///   bullets: (
+///     [Worked in team to develop a C2 system],
+///     [Shadowed pentesters],
+///   ),
 /// )
 /// ```
-///
-/// A formatted block with the experience entry details
 /// -> content
 #let entry(
-  /// The company or organization name
+  /// Company or organization.
   /// -> string
   organization: none,
-  /// The position or job title
+  /// Position or job title.
   /// -> string
   title: none,
-  /// The geographical location
+  /// Geographic location.
   /// -> string
   location: none,
-  /// The time period (e.g., "May 2022 - Present")
+  /// Time period (e.g., "May 2022 - Present").
   /// -> string
   date: none,
-  /// An array of bullet point descriptions
+  /// Bullet point descriptions.
   /// -> array
   bullets: (),
-) = {
-  block(spacing: 1em)[
-    #grid(
-      columns: (1fr, auto),
-      rows: 2,
-      row-gutter: 0.1em,
-      inset: (top: 0.3em),
-      text(weight: "bold", organization), align(right, date),
-      (title, location).join(" | "),
-    )
+) = block(spacing: 1em)[
+  #grid(
+    columns: (1fr, auto),
+    row-gutter: 0.1em,
+    inset: (top: 0.3em),
+    text(weight: "bold", organization), align(right, date),
+    (title, location).join(" | "), none,
+  )
+  #if bullets.len() > 0 {
+    pad(left: 0.5em, list(..bullets))
+  }
+]
 
-    #if bullets.len() > 0 {
-      pad(
-        left: 0.5em,
-        list(..bullets.map(bullet => [#bullet])),
-      )
-    }
-  ]
-}
-
-/// Creates a skills section with customizable skill categories
-///
-/// This function formats a skills section with multiple categories,
-/// each containing a list of skills or technologies.
+/// Skills section with categorized lists.
 ///
 /// ```example
 /// #skills-section((
-///    "Programming Languages": "Python, Golang, Zig, C, Terraform",
-///    "Tools & Frameworks": "Ghidra, Pwntools, AWS, WireShark",
+///   "Programming Languages": "Python, Golang, Zig, C, Terraform",
+///   "Tools & Frameworks": "Ghidra, Pwntools, AWS, WireShark",
 /// ))
 /// ```
-///
-/// A formatted block containing the skills categorized in a list
 /// -> content
 #let skills-section(
-  /// A dictionary where keys are category names and values are the skills
+  /// Mapping of category name to comma-separated skills.
   /// -> dictionary
   categories,
-) = {
-  block[
-    #for (category, skills) in categories.pairs() [
-      - #text(weight: "bold", category + ": ") #skills
-    ]
+) = block[
+  #for (category, skills) in categories.pairs() [
+    - #text(weight: "bold", category + ": ") #skills
   ]
-}
+]
 
-/// Creates an education entry with institution, degree, and details
-///
-/// This function formats an education entry with university name,
-/// degree information, dates, and optional additional details.
+/// Education entry with institution, degree, and details.
 ///
 /// ```example
-///#education(
-///    institution: "The Ohio State University",
-///    degree: "B.A. Computer and Information Science",
-///    date: "2020 - 2025",
-///    details: [Minor in Mathematics, GPA: 3.9],
+/// #education(
+///   institution: "The Ohio State University",
+///   degree: "B.A. Computer and Information Science",
+///   date: "2020 - 2025",
+///   details: [GPA: 3.9],
 /// )
 /// ```
-///
-/// A formatted block with the education entry details
 /// -> content
 #let education(
-  /// The school or university name
+  /// School or university name.
   /// -> string
   institution: none,
-  /// The degree title or program of study
+  /// Degree title or program of study.
   /// -> string
   degree: none,
-  /// The time period (e.g., "2020 - 2024")
+  /// Time period (e.g., "2020 - 2024").
   /// -> string
   date: none,
-  /// Optional additional information (e.g., GPA, minors, honors)
+  /// Optional additional info (e.g., GPA, minors, honors).
   /// -> content
   details: none,
-) = {
-  block(spacing: 0.7em)[
-    #grid(
-      columns: (1fr, auto),
-      rows: 2,
-      row-gutter: 0.6em,
-      text(weight: "bold", institution), align(right, date),
-      text(style: "italic", degree), details,
-    )
-  ]
-}
+) = block(spacing: 0.7em)[
+  #grid(
+    columns: (1fr, auto),
+    row-gutter: 0.6em,
+    text(weight: "bold", institution), align(right, date),
+    text(style: "italic", degree), details,
+  )
+]
